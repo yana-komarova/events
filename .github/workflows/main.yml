@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 14
+
+    - name: Install dependencies
+      run: yarn install
+
+    - name: Build
+      run: yarn build
+
+    - name: Lint
+      run: yarn lint
+
+    - name: Test
+      run: yarn test
+
+    - name: Deploy to Appveyor
+      env:
+        APPVEYOR_ACCOUNT_NAME: ${{ secrets.APPVEYOR_ACCOUNT_NAME }}
+        APPVEYOR_API_KEY: ${{ secrets.APPVEYOR_API_KEY }}
+      run: |
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -d '{"accountName": "${Yana64262}", "projectSlug": "events", "branch": "main", "isMainline": true, "skipArtifactsUpload": false, "configuration": "Release"}' \
+          https://ci.appveyor.com/api/projects/${Yana64262}/events/queue
